@@ -1,0 +1,283 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>STL Viewer – GitHub Pages</title>
+  <style>
+    :root{
+      --bg:#0b0e14;
+      --panel:#111623;
+      --text:#e6e9ef;
+      --muted:#8a93a6;
+      --accent:#7bd7ff;
+      --accent2:#b677ff;
+      --card:#0f1422;
+      --border:#1b2233;
+    }
+    html, body { height:100%; }
+    body {
+      margin:0; background: radial-gradient(1200px 600px at 20% -10%, #121829 0%, #0b0e14 40%, #0b0e14 100%);
+      color:var(--text); font: 14px/1.4 system-ui, -apple-system, Segoe UI, Roboto, Inter, Arial, sans-serif;
+      display:grid; grid-template-rows:auto 1fr; overflow:hidden;
+    }
+    header{
+      display:flex; gap:12px; align-items:center; padding:10px 14px; background:var(--panel); border-bottom:1px solid var(--border);
+      position:sticky; top:0; z-index:10;
+    }
+    header h1{font-size:14px; font-weight:600; letter-spacing:.3px; margin:0; color:var(--text);}
+    header .spacer{flex:1}
+    .toolbar{ display:flex; align-items:center; gap:10px; flex-wrap:wrap; }
+    .btn, .input, select{
+      background:var(--card); color:var(--text); border:1px solid var(--border); border-radius:10px;
+      padding:8px 10px; outline:none;
+    }
+    .btn{ cursor:pointer; }
+    .btn:hover{ border-color:#2a3550; }
+    .row{ display:flex; align-items:center; gap:8px; }
+    .muted{ color:var(--muted); }
+    #dropzone{ border:1px dashed #2a3550; background:#0c1120; color:var(--muted); padding:6px 10px; border-radius:10px; }
+    #viewer { position:relative; }
+    canvas{ display:block; }
+    .panel-right{
+      position:absolute; right:12px; top:12px; width:260px; background:var(--panel); border:1px solid var(--border);
+      border-radius:14px; box-shadow:0 10px 30px rgba(0,0,0,.35); padding:12px; backdrop-filter: blur(6px);
+    }
+    .panel-right h3{ margin:0 0 8px; font-size:12px; letter-spacing:.2px; text-transform:uppercase; color:var(--muted); }
+    .field{ display:grid; grid-template-columns: 42px 1fr 56px; gap:8px; align-items:center; margin:8px 0; }
+    .field input[type="range"]{ width:100%; }
+    .field output{ text-align:right; color:var(--muted); }
+    .chips{ display:flex; flex-wrap:wrap; gap:6px; }
+    .chip{ background:var(--card); border:1px solid var(--border); padding:6px 8px; border-radius:999px; font-size:12px; color:var(--muted); }
+    .link{ color:var(--accent); text-decoration:none; }
+    .footer{ position:absolute; left:12px; bottom:12px; background:var(--panel); border:1px solid var(--border); border-radius:10px; padding:6px 10px; color:var(--muted); }
+    .kbd{ font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace; background:#0a0f1e; border:1px solid var(--border); padding:2px 6px; border-radius:6px; }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>STL Viewer</h1>
+    <div class="spacer"></div>
+    <div class="toolbar">
+      <label class="row" title="Carregar STL do seu computador">
+        <input id="file" type="file" accept=".stl,model/stl" style="display:none" />
+        <button class="btn" id="openBtn">Abrir STL…</button>
+      </label>
+      <div class="row">
+        <input id="url" class="input" placeholder="URL do STL (opcional)" size="30" />
+        <button class="btn" id="loadUrlBtn">Carregar URL</button>
+      </div>
+      <div id="dropzone" class="row" title="Arraste e solte aqui seu .stl">Arraste seu <strong>.stl</strong> aqui</div>
+    </div>
+  </header>
+
+  <div id="viewer"></div>
+
+  <div class="footer">Dica: use <span class="kbd">mouse</span> para girar / rolar para zoom · <span class="kbd">R</span> para resetar</div>
+
+  <script type="module">
+    // ===== Imports via ESM (fixe uma versão para evitar quebras) =====
+    import * as THREE from "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js";
+    import { OrbitControls } from "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/controls/OrbitControls.js";
+    import { STLLoader } from "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/loaders/STLLoader.js";
+
+    // ===== Cena básica =====
+    const container = document.getElementById('viewer');
+    const renderer = new THREE.WebGLRenderer({ antialias:true, alpha:true });
+    renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
+    renderer.setSize(window.innerWidth, window.innerHeight - document.querySelector('header').offsetHeight);
+    renderer.outputColorSpace = THREE.SRGBColorSpace;
+    container.appendChild(renderer.domElement);
+
+    const scene = new THREE.Scene();
+
+    const camera = new THREE.PerspectiveCamera(60, renderer.domElement.width / renderer.domElement.height, 0.1, 2000);
+    camera.position.set(100, 80, 140);
+
+    const controls = new OrbitControls(camera, renderer.domElement);
+    controls.enableDamping = true;
+    controls.dampingFactor = 0.05;
+    controls.autoRotate = false;
+
+    // Luzes
+    const hemi = new THREE.HemisphereLight(0xffffff, 0x334466, 0.8);
+    scene.add(hemi);
+    const dir = new THREE.DirectionalLight(0xffffff, 1.0);
+    dir.position.set(80, 120, 100);
+    dir.castShadow = true;
+    scene.add(dir);
+
+    // Piso opcional
+    const grid = new THREE.GridHelper(400, 40, 0x2a3550, 0x1a2338);
+    grid.material.opacity = 0.25; grid.material.transparent = true; scene.add(grid);
+
+    // Material padrão
+    const defaultMaterial = new THREE.MeshPhysicalMaterial({
+      color: 0x69b1ff,
+      roughness: 0.35,
+      metalness: 0.1,
+      clearcoat: 0.3,
+      envMapIntensity: 0.6
+    });
+
+    let currentMesh = null;
+
+    // ===== UI Painel =====
+    const panel = document.createElement('div');
+    panel.className = 'panel-right';
+    panel.innerHTML = `
+      <h3>Transformações</h3>
+      <div class="field"><label>X</label><input id="rx" type="range" min="-180" max="180" value="0" step="1"><output id="rxv">0°</output></div>
+      <div class="field"><label>Y</label><input id="ry" type="range" min="-180" max="180" value="0" step="1"><output id="ryv">0°</output></div>
+      <div class="field"><label>Z</label><input id="rz" type="range" min="-180" max="180" value="0" step="1"><output id="rzv">0°</output></div>
+      <div class="row" style="margin:10px 0 6px 0;">
+        <label class="row"><input id="autorotate" type="checkbox"> Auto-rotate</label>
+        <button class="btn" id="resetBtn" style="margin-left:auto">Reset</button>
+      </div>
+      <h3>Sobre</h3>
+      <div class="chips">
+        <span class="chip">Arraste & Solte .stl</span>
+        <span class="chip">Suporte a URL</span>
+        <span class="chip">GitHub Pages Ready</span>
+      </div>
+      <p class="muted" style="margin-top:8px">Dica: adicione <code>?file=seuArquivo.stl</code> à URL.</p>
+    `;
+    container.appendChild(panel);
+
+    // Sliders
+    const rx = panel.querySelector('#rx');
+    const ry = panel.querySelector('#ry');
+    const rz = panel.querySelector('#rz');
+    const rxv = panel.querySelector('#rxv');
+    const ryv = panel.querySelector('#ryv');
+    const rzv = panel.querySelector('#rzv');
+
+    const autorotate = panel.querySelector('#autorotate');
+    const resetBtn = panel.querySelector('#resetBtn');
+
+    function updateRotationUI(){
+      rxv.value = `${rx.value}°`;
+      ryv.value = `${ry.value}°`;
+      rzv.value = `${rz.value}°`;
+      if (currentMesh){
+        currentMesh.rotation.set(
+          THREE.MathUtils.degToRad(+rx.value),
+          THREE.MathUtils.degToRad(+ry.value),
+          THREE.MathUtils.degToRad(+rz.value)
+        );
+      }
+    }
+    rx.addEventListener('input', updateRotationUI);
+    ry.addEventListener('input', updateRotationUI);
+    rz.addEventListener('input', updateRotationUI);
+    autorotate.addEventListener('change', () => controls.autoRotate = autorotate.checked);
+    resetBtn.addEventListener('click', () => {
+      rx.value = ry.value = rz.value = 0; updateRotationUI();
+      controls.reset();
+      fitCameraToObject(currentMesh, 1.3);
+    });
+
+    // ===== Loader =====
+    const loader = new STLLoader();
+
+    async function loadSTLFromURL(url){
+      try{
+        const geometry = await loader.loadAsync(url);
+        setMesh(geometry);
+      } catch(err){
+        alert('Falha ao carregar STL: ' + err.message);
+        console.error(err);
+      }
+    }
+
+    function loadSTLFromFile(file){
+      const reader = new FileReader();
+      reader.onload = () => {
+        try{
+          const geometry = loader.parse(reader.result);
+          setMesh(geometry);
+        }catch(err){
+          alert('Não foi possível ler este STL.');
+          console.error(err);
+        }
+      };
+      reader.readAsArrayBuffer(file);
+    }
+
+    function setMesh(geometry){
+      if (currentMesh){ scene.remove(currentMesh); currentMesh.geometry.dispose(); }
+      geometry.computeVertexNormals();
+      currentMesh = new THREE.Mesh(geometry, defaultMaterial);
+      currentMesh.castShadow = true; currentMesh.receiveShadow = true;
+      scene.add(currentMesh);
+      rx.value = ry.value = rz.value = 0; updateRotationUI();
+      fitCameraToObject(currentMesh, 1.5);
+    }
+
+    function fitCameraToObject(obj, offset = 1.25){
+      if(!obj) return;
+      obj.geometry.computeBoundingSphere();
+      const bs = obj.geometry.boundingSphere;
+      const size = bs.radius * 2 * offset;
+      const fov = camera.fov * (Math.PI/180);
+      let cameraZ = Math.abs(size / (2 * Math.tan(fov/2)));
+      cameraZ *= 1.1; // margem
+      camera.position.set(bs.center.x + cameraZ, bs.center.y + cameraZ*0.6, bs.center.z + cameraZ);
+      controls.target.copy(bs.center);
+      controls.update();
+    }
+
+    // ===== Eventos UI =====
+    const fileInput = document.getElementById('file');
+    const openBtn = document.getElementById('openBtn');
+    const urlInput = document.getElementById('url');
+    const loadUrlBtn = document.getElementById('loadUrlBtn');
+
+    openBtn.addEventListener('click', () => fileInput.click());
+    fileInput.addEventListener('change', e => {
+      const f = e.target.files?.[0]; if (f) loadSTLFromFile(f);
+    });
+
+    loadUrlBtn.addEventListener('click', () => {
+      const u = urlInput.value.trim(); if (u) loadSTLFromURL(u);
+    });
+
+    // Drag & Drop
+    const drop = document.getElementById('dropzone');
+    ;['dragenter','dragover','dragleave','drop'].forEach(evt => drop.addEventListener(evt, e => { e.preventDefault(); e.stopPropagation(); }));
+    ;['dragenter','dragover'].forEach(evt => drop.addEventListener(evt, () => drop.style.borderColor = '#3a4b75'));
+    ;['dragleave','drop'].forEach(evt => drop.addEventListener(evt, () => drop.style.borderColor = '#2a3550'));
+    drop.addEventListener('drop', e => {
+      const f = e.dataTransfer.files?.[0]; if (f) loadSTLFromFile(f);
+    });
+
+    // ===== Query param ?file= =====
+    const params = new URLSearchParams(location.search);
+    const fileParam = params.get('file');
+    if (fileParam){
+      urlInput.value = fileParam;
+      loadSTLFromURL(fileParam);
+    } else {
+      // Opcional: defina um STL padrão do repositório (ex.: './modelo.stl')
+      // loadSTLFromURL('./modelo.stl');
+    }
+
+    // ===== Loop =====
+    function resize(){
+      const h = window.innerHeight - document.querySelector('header').offsetHeight;
+      renderer.setSize(window.innerWidth, h);
+      camera.aspect = renderer.domElement.width / renderer.domElement.height;
+      camera.updateProjectionMatrix();
+    }
+    window.addEventListener('resize', resize);
+    window.addEventListener('keydown', (e) => { if (e.key.toLowerCase() === 'r') resetBtn.click(); });
+
+    (function animate(){
+      requestAnimationFrame(animate);
+      controls.update();
+      renderer.render(scene, camera);
+    })();
+
+  </script>
+</body>
+</html>
