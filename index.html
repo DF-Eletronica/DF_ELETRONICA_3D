@@ -6,14 +6,7 @@
   <title>STL Viewer – GitHub Pages</title>
   <style>
     :root{
-      --bg:#0b0e14;
-      --panel:#111623;
-      --text:#e6e9ef;
-      --muted:#8a93a6;
-      --accent:#7bd7ff;
-      --accent2:#b677ff;
-      --card:#0f1422;
-      --border:#1b2233;
+      --bg:#0b0e14; --panel:#111623; --text:#e6e9ef; --muted:#8a93a6; --accent:#7bd7ff; --card:#0f1422; --border:#1b2233;
     }
     html, body { height:100%; }
     body {
@@ -25,17 +18,11 @@
       display:flex; gap:12px; align-items:center; padding:10px 14px; background:var(--panel); border-bottom:1px solid var(--border);
       position:sticky; top:0; z-index:10;
     }
-    header h1{font-size:14px; font-weight:600; letter-spacing:.3px; margin:0; color:var(--text);}
-    header .spacer{flex:1}
+    header h1{font-size:14px; font-weight:600; letter-spacing:.3px; margin:0; color:var(--text);} header .spacer{flex:1}
     .toolbar{ display:flex; align-items:center; gap:10px; flex-wrap:wrap; }
-    .btn, .input, select{
-      background:var(--card); color:var(--text); border:1px solid var(--border); border-radius:10px;
-      padding:8px 10px; outline:none;
-    }
-    .btn{ cursor:pointer; }
-    .btn:hover{ border-color:#2a3550; }
-    .row{ display:flex; align-items:center; gap:8px; }
-    .muted{ color:var(--muted); }
+    .btn, .input{ background:var(--card); color:var(--text); border:1px solid var(--border); border-radius:10px; padding:8px 10px; outline:none; }
+    .btn{ cursor:pointer; } .btn:hover{ border-color:#2a3550; }
+    .row{ display:flex; align-items:center; gap:8px; } .muted{ color:var(--muted); }
     #dropzone{ border:1px dashed #2a3550; background:#0c1120; color:var(--muted); padding:6px 10px; border-radius:10px; }
     #viewer { position:relative; }
     canvas{ display:block; }
@@ -45,14 +32,24 @@
     }
     .panel-right h3{ margin:0 0 8px; font-size:12px; letter-spacing:.2px; text-transform:uppercase; color:var(--muted); }
     .field{ display:grid; grid-template-columns: 42px 1fr 56px; gap:8px; align-items:center; margin:8px 0; }
-    .field input[type="range"]{ width:100%; }
-    .field output{ text-align:right; color:var(--muted); }
-    .chips{ display:flex; flex-wrap:wrap; gap:6px; }
-    .chip{ background:var(--card); border:1px solid var(--border); padding:6px 8px; border-radius:999px; font-size:12px; color:var(--muted); }
-    .link{ color:var(--accent); text-decoration:none; }
+    .field input[type="range"]{ width:100%; } .field output{ text-align:right; color:var(--muted); }
+    .chips{ display:flex; flex-wrap:wrap; gap:6px; } .chip{ background:var(--card); border:1px solid var(--border); padding:6px 8px; border-radius:999px; font-size:12px; color:var(--muted); }
     .footer{ position:absolute; left:12px; bottom:12px; background:var(--panel); border:1px solid var(--border); border-radius:10px; padding:6px 10px; color:var(--muted); }
-    .kbd{ font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace; background:#0a0f1e; border:1px solid var(--border); padding:2px 6px; border-radius:6px; }
+    .kbd{ font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace; background:#0a0f1e; border:1px solid var(--border); padding:2px 6px; border-radius:6px; }
   </style>
+
+  <!-- Polyfill para Import Maps em navegadores sem suporte (ex.: versões antigas do Firefox) -->
+  <script async src="https://cdn.jsdelivr.net/npm/es-module-shims@1.10.0/dist/es-module-shims.min.js" crossorigin="anonymous"></script>
+
+  <!-- Import map garante que OrbitControls/STLLoader usem a MESMA instância do three -->
+  <script type="importmap">
+    {
+      "imports": {
+        "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js",
+        "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"
+      }
+    }
+  </script>
 </head>
 <body>
   <header>
@@ -76,49 +73,41 @@
   <div class="footer">Dica: use <span class="kbd">mouse</span> para girar / rolar para zoom · <span class="kbd">R</span> para resetar</div>
 
   <script type="module">
-    // ===== Imports via ESM (fixe uma versão para evitar quebras) =====
-    import * as THREE from "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js";
-    import { OrbitControls } from "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/controls/OrbitControls.js";
-    import { STLLoader } from "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/loaders/STLLoader.js";
+    import * as THREE from 'three';
+    import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
+    import { STLLoader } from 'three/addons/loaders/STLLoader.js';
 
     // ===== Cena básica =====
     const container = document.getElementById('viewer');
+    const headerH = document.querySelector('header').offsetHeight;
+
     const renderer = new THREE.WebGLRenderer({ antialias:true, alpha:true });
     renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
-    renderer.setSize(window.innerWidth, window.innerHeight - document.querySelector('header').offsetHeight);
+    renderer.setSize(window.innerWidth, window.innerHeight - headerH);
     renderer.outputColorSpace = THREE.SRGBColorSpace;
     container.appendChild(renderer.domElement);
 
     const scene = new THREE.Scene();
 
-    const camera = new THREE.PerspectiveCamera(60, renderer.domElement.width / renderer.domElement.height, 0.1, 2000);
+    const sizeVec = new THREE.Vector2();
+    renderer.getSize(sizeVec);
+    const camera = new THREE.PerspectiveCamera(60, sizeVec.x / sizeVec.y, 0.1, 2000);
     camera.position.set(100, 80, 140);
 
     const controls = new OrbitControls(camera, renderer.domElement);
     controls.enableDamping = true;
     controls.dampingFactor = 0.05;
-    controls.autoRotate = false;
 
     // Luzes
-    const hemi = new THREE.HemisphereLight(0xffffff, 0x334466, 0.8);
-    scene.add(hemi);
-    const dir = new THREE.DirectionalLight(0xffffff, 1.0);
-    dir.position.set(80, 120, 100);
-    dir.castShadow = true;
-    scene.add(dir);
+    scene.add(new THREE.HemisphereLight(0xffffff, 0x334466, 0.8));
+    const dir = new THREE.DirectionalLight(0xffffff, 1.0); dir.position.set(80,120,100); dir.castShadow = true; scene.add(dir);
 
     // Piso opcional
     const grid = new THREE.GridHelper(400, 40, 0x2a3550, 0x1a2338);
     grid.material.opacity = 0.25; grid.material.transparent = true; scene.add(grid);
 
     // Material padrão
-    const defaultMaterial = new THREE.MeshPhysicalMaterial({
-      color: 0x69b1ff,
-      roughness: 0.35,
-      metalness: 0.1,
-      clearcoat: 0.3,
-      envMapIntensity: 0.6
-    });
+    const defaultMaterial = new THREE.MeshPhysicalMaterial({ color:0x69b1ff, roughness:0.35, metalness:0.1, clearcoat:0.3, envMapIntensity:0.6 });
 
     let currentMesh = null;
 
@@ -151,14 +140,13 @@
     const rxv = panel.querySelector('#rxv');
     const ryv = panel.querySelector('#ryv');
     const rzv = panel.querySelector('#rzv');
-
     const autorotate = panel.querySelector('#autorotate');
     const resetBtn = panel.querySelector('#resetBtn');
 
     function updateRotationUI(){
-      rxv.value = `${rx.value}°`;
-      ryv.value = `${ry.value}°`;
-      rzv.value = `${rz.value}°`;
+      rxv.textContent = `${rx.value}°`;
+      ryv.textContent = `${ry.value}°`;
+      rzv.textContent = `${rz.value}°`;
       if (currentMesh){
         currentMesh.rotation.set(
           THREE.MathUtils.degToRad(+rx.value),
@@ -167,9 +155,7 @@
         );
       }
     }
-    rx.addEventListener('input', updateRotationUI);
-    ry.addEventListener('input', updateRotationUI);
-    rz.addEventListener('input', updateRotationUI);
+    ['input','change'].forEach(evt => { rx.addEventListener(evt, updateRotationUI); ry.addEventListener(evt, updateRotationUI); rz.addEventListener(evt, updateRotationUI); });
     autorotate.addEventListener('change', () => controls.autoRotate = autorotate.checked);
     resetBtn.addEventListener('click', () => {
       rx.value = ry.value = rz.value = 0; updateRotationUI();
@@ -185,7 +171,7 @@
         const geometry = await loader.loadAsync(url);
         setMesh(geometry);
       } catch(err){
-        alert('Falha ao carregar STL: ' + err.message);
+        alert('Falha ao carregar STL. Verifique a URL (HTTPS) e CORS.');
         console.error(err);
       }
     }
@@ -234,50 +220,37 @@
     const loadUrlBtn = document.getElementById('loadUrlBtn');
 
     openBtn.addEventListener('click', () => fileInput.click());
-    fileInput.addEventListener('change', e => {
-      const f = e.target.files?.[0]; if (f) loadSTLFromFile(f);
-    });
-
-    loadUrlBtn.addEventListener('click', () => {
-      const u = urlInput.value.trim(); if (u) loadSTLFromURL(u);
-    });
+    fileInput.addEventListener('change', e => { const f = e.target.files?.[0]; if (f) loadSTLFromFile(f); });
+    loadUrlBtn.addEventListener('click', () => { const u = urlInput.value.trim(); if (u) loadSTLFromURL(u); });
 
     // Drag & Drop
     const drop = document.getElementById('dropzone');
-    ;['dragenter','dragover','dragleave','drop'].forEach(evt => drop.addEventListener(evt, e => { e.preventDefault(); e.stopPropagation(); }));
-    ;['dragenter','dragover'].forEach(evt => drop.addEventListener(evt, () => drop.style.borderColor = '#3a4b75'));
-    ;['dragleave','drop'].forEach(evt => drop.addEventListener(evt, () => drop.style.borderColor = '#2a3550'));
-    drop.addEventListener('drop', e => {
-      const f = e.dataTransfer.files?.[0]; if (f) loadSTLFromFile(f);
-    });
+    ['dragenter','dragover','dragleave','drop'].forEach(evt => drop.addEventListener(evt, e => { e.preventDefault(); e.stopPropagation(); }));
+    ['dragenter','dragover'].forEach(() => drop.style.borderColor = '#3a4b75');
+    ['dragleave','drop'].forEach(() => drop.style.borderColor = '#2a3550');
+    drop.addEventListener('drop', e => { const f = e.dataTransfer.files?.[0]; if (f) loadSTLFromFile(f); });
 
     // ===== Query param ?file= =====
     const params = new URLSearchParams(location.search);
     const fileParam = params.get('file');
-    if (fileParam){
-      urlInput.value = fileParam;
-      loadSTLFromURL(fileParam);
-    } else {
-      // Opcional: defina um STL padrão do repositório (ex.: './modelo.stl')
-      // loadSTLFromURL('./modelo.stl');
-    }
+    if (fileParam){ urlInput.value = decodeURIComponent(fileParam); loadSTLFromURL(urlInput.value); }
 
-    // ===== Loop =====
+    // ===== Resize =====
     function resize(){
-      const h = window.innerHeight - document.querySelector('header').offsetHeight;
+      const h = window.innerHeight - headerH;
       renderer.setSize(window.innerWidth, h);
-      camera.aspect = renderer.domElement.width / renderer.domElement.height;
+      renderer.getSize(sizeVec);
+      camera.aspect = sizeVec.x / sizeVec.y;
       camera.updateProjectionMatrix();
     }
     window.addEventListener('resize', resize);
     window.addEventListener('keydown', (e) => { if (e.key.toLowerCase() === 'r') resetBtn.click(); });
 
-    (function animate(){
-      requestAnimationFrame(animate);
+    // ===== Loop =====
+    renderer.setAnimationLoop(() => {
       controls.update();
       renderer.render(scene, camera);
-    })();
-
+    });
   </script>
 </body>
 </html>
