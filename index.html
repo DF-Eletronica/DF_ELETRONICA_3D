@@ -3,46 +3,34 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>STL Viewer – GitHub Pages (Pro)</title>
+  <title>STL/OBJ/GLTF Viewer – GitHub Pages (Pro)</title>
   <style>
-    :root{
-      --bg:#0b0e14; --panel:#111623; --text:#e6e9ef; --muted:#8a93a6; --accent:#7bd7ff; --border:#1b2233; --card:#0f1422;
-    }
+    :root{ --bg:#0b0e14; --panel:#111623; --text:#e6e9ef; --muted:#8a93a6; --accent:#7bd7ff; --border:#1b2233; --card:#0f1422; }
     html, body { height:100%; }
-    body {
-      margin:0; background: radial-gradient(1200px 600px at 20% -10%, #121829 0%, #0b0e14 40%, #0b0e14 100%);
-      color:var(--text); font: 14px/1.4 system-ui, -apple-system, Segoe UI, Roboto, Inter, Arial, sans-serif;
-      display:grid; grid-template-rows:auto 1fr; overflow:hidden;
-    }
-    header{
-      display:flex; gap:12px; align-items:center; padding:10px 14px; background:var(--panel); border-bottom:1px solid var(--border);
-      position:sticky; top:0; z-index:10;
-    }
-    header h1{font-size:14px; font-weight:600; letter-spacing:.3px; margin:0; color:var(--text);} header .spacer{flex:1}
+    body { margin:0; background: radial-gradient(1200px 600px at 20% -10%, #121829 0%, #0b0e14 40%, #0b0e14 100%);
+      color:var(--text); font:14px/1.4 system-ui,-apple-system,Segoe UI,Roboto,Inter,Arial,sans-serif; display:grid; grid-template-rows:auto 1fr; overflow:hidden; }
+    header{ display:flex; gap:12px; align-items:center; padding:10px 14px; background:var(--panel); border-bottom:1px solid var(--border); position:sticky; top:0; z-index:10; }
+    header h1{ font-size:14px; font-weight:600; letter-spacing:.3px; margin:0; color:var(--text);} header .spacer{flex:1}
     .toolbar{ display:flex; align-items:center; gap:10px; flex-wrap:wrap; }
-    .btn, .input, select{ background:var(--card); color:var(--text); border:1px solid var(--border); border-radius:10px; padding:8px 10px; outline:none; }
+    .btn,.input,select{ background:var(--card); color:var(--text); border:1px solid var(--border); border-radius:10px; padding:8px 10px; outline:none; }
     .btn{ cursor:pointer; } .btn:hover{ border-color:#2a3550; }
     .row{ display:flex; align-items:center; gap:8px; } .muted{ color:var(--muted); }
     #dropzone{ border:1px dashed #2a3550; background:#0c1120; color:var(--muted); padding:6px 10px; border-radius:10px; }
     #viewer { position:relative; }
     canvas{ display:block; }
-    .panel-right{
-      position:absolute; right:12px; top:12px; width:310px; background:var(--panel); border:1px solid var(--border);
-      border-radius:14px; box-shadow:0 10px 30px rgba(0,0,0,.35); padding:12px; backdrop-filter: blur(6px);
-      max-height: calc(100% - 24px); overflow:auto;
-    }
+    .panel-right{ position:absolute; right:12px; top:12px; width:330px; background:var(--panel); border:1px solid var(--border); border-radius:14px; box-shadow:0 10px 30px rgba(0,0,0,.35); padding:12px; backdrop-filter: blur(6px); max-height: calc(100% - 24px); overflow:auto; }
     .panel-right h3{ margin:10px 0 6px; font-size:12px; letter-spacing:.2px; text-transform:uppercase; color:var(--muted); }
     .field{ display:grid; grid-template-columns: 64px 1fr 56px; gap:8px; align-items:center; margin:8px 0; }
     .field input[type="range"]{ width:100%; } .field output{ text-align:right; color:var(--muted); min-width:44px; }
     .chips{ display:flex; flex-wrap:wrap; gap:6px; } .chip{ background:var(--card); border:1px solid var(--border); padding:6px 8px; border-radius:999px; font-size:12px; color:var(--muted); }
     .footer{ position:absolute; left:12px; bottom:12px; background:var(--panel); border:1px solid var(--border); border-radius:10px; padding:6px 10px; color:var(--muted); }
-    .kbd{ font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace; background:#0a0f1e; border:1px solid var(--border); padding:2px 6px; border-radius:6px; }
+    .kbd{ font-family: ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,"Liberation Mono","Courier New",monospace; background:#0a0f1e; border:1px solid var(--border); padding:2px 6px; border-radius:6px; }
     .row-split{ display:grid; grid-template-columns:1fr 1fr; gap:8px; }
-    .tiny{ font-size:12px; color:var(--muted); }
     .inline{ display:inline-flex; gap:8px; align-items:center; }
+    .tiny{ font-size:12px; color:var(--muted); }
   </style>
 
-  <!-- Polyfill para Import Maps (Firefox / Safari antigos) -->
+  <!-- Polyfill para Import Maps (Firefox/Safari antigos) -->
   <script async src="https://cdn.jsdelivr.net/npm/es-module-shims@1.10.0/dist/es-module-shims.min.js" crossorigin="anonymous"></script>
   <!-- Import map: garante uma única instância de three para os addons -->
   <script type="importmap">
@@ -56,18 +44,18 @@
 </head>
 <body>
   <header>
-    <h1>STL Viewer</h1>
+    <h1>3D Viewer</h1>
     <div class="spacer"></div>
     <div class="toolbar">
-      <label class="row" title="Carregar STL do seu computador">
-        <input id="file" type="file" accept=".stl,model/stl" style="display:none" />
-        <button class="btn" id="openBtn">Abrir STL…</button>
+      <label class="row" title="Carregar modelo do seu computador (suporta STL, OBJ, GLTF/GLB, PLY)">
+        <input id="file" type="file" multiple accept=".stl,.obj,.mtl,.gltf,.glb,.ply,.png,.jpg,.jpeg,.hdr,.exr,model/stl,model/gltf-binary,model/gltf+json,image/*" style="display:none" />
+        <button class="btn" id="openBtn">Abrir modelo…</button>
       </label>
       <div class="row">
-        <input id="url" class="input" placeholder="URL do STL (opcional)" size="34" />
+        <input id="url" class="input" placeholder="URL do modelo (stl/obj/gltf/glb/ply)" size="36" />
         <button class="btn" id="loadUrlBtn">Carregar URL</button>
       </div>
-      <div id="dropzone" class="row" title="Arraste e solte aqui seu .stl">Arraste seu <strong>.stl</strong> aqui</div>
+      <div id="dropzone" class="row" title="Arraste e solte aqui seu(s) arquivo(s)">Arraste seu(s) arquivo(s) <strong>.stl / .obj / .gltf / .glb / .ply</strong> aqui</div>
     </div>
   </header>
 
@@ -78,6 +66,10 @@
     import * as THREE from 'three';
     import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
     import { STLLoader } from 'three/addons/loaders/STLLoader.js';
+    import { OBJLoader } from 'three/addons/loaders/OBJLoader.js';
+    import { MTLLoader } from 'three/addons/loaders/MTLLoader.js';
+    import { GLTFLoader } from 'three/addons/loaders/GLTFLoader.js';
+    import { PLYLoader } from 'three/addons/loaders/PLYLoader.js';
     import { RGBELoader } from 'three/addons/loaders/RGBELoader.js';
 
     // ===== Cena básica =====
@@ -88,8 +80,7 @@
     renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
     renderer.setSize(window.innerWidth, window.innerHeight - headerH);
     renderer.outputColorSpace = THREE.SRGBColorSpace;
-    renderer.shadowMap.enabled = true;
-    renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+    renderer.shadowMap.enabled = true; renderer.shadowMap.type = THREE.PCFSoftShadowMap;
     container.appendChild(renderer.domElement);
 
     const scene = new THREE.Scene();
@@ -100,34 +91,25 @@
     camera.position.set(140, 120, 180);
 
     const controls = new OrbitControls(camera, renderer.domElement);
-    controls.enableDamping = true; controls.dampingFactor = 0.06;
-    controls.screenSpacePanning = true; // shift+arrasto para pan
+    controls.enableDamping = true; controls.dampingFactor = 0.06; controls.screenSpacePanning = true;
 
     // Luzes
-    const hemi = new THREE.HemisphereLight(0xffffff, 0x334466, 0.9);
-    scene.add(hemi);
-    const dir = new THREE.DirectionalLight(0xffffff, 1.2);
-    dir.position.set(120, 200, 160);
-    dir.castShadow = true; dir.shadow.mapSize.set(2048,2048);
-    dir.shadow.camera.near = 0.1; dir.shadow.camera.far = 1500;
-    scene.add(dir);
+    const hemi = new THREE.HemisphereLight(0xffffff, 0x334466, 0.9); scene.add(hemi);
+    const dir = new THREE.DirectionalLight(0xffffff, 1.2); dir.position.set(120, 200, 160); dir.castShadow = true; dir.shadow.mapSize.set(2048,2048); dir.shadow.camera.near = 0.1; dir.shadow.camera.far = 1500; scene.add(dir);
 
     // Piso / grid / plano de sombra
     const grid = new THREE.GridHelper(1000, 100, 0x2a3550, 0x1a2338); grid.material.opacity=0.25; grid.material.transparent=true; scene.add(grid);
-    const ground = new THREE.Mesh(new THREE.PlaneGeometry(5000,5000), new THREE.ShadowMaterial({ opacity:0.25 }));
-    ground.rotation.x = -Math.PI/2; ground.position.y = 0; ground.receiveShadow = true; scene.add(ground);
+    const ground = new THREE.Mesh(new THREE.PlaneGeometry(5000,5000), new THREE.ShadowMaterial({ opacity:0.25 })); ground.rotation.x = -Math.PI/2; ground.position.y = 0; ground.receiveShadow = true; scene.add(ground);
 
-    // Material padrão e estado atual
+    // Estado atual
     const defaultMaterial = new THREE.MeshPhysicalMaterial({ color:0x69b1ff, roughness:0.35, metalness:0.1, clearcoat:0.3, envMapIntensity:0.8 });
-    let currentMesh = null;
+    let currentRoot = null; // Group que segura o modelo
     let currentRadius = 100;
-    let pmremGen = new THREE.PMREMGenerator(renderer);
+    const pmremGen = new THREE.PMREMGenerator(renderer);
     let currentEnvRT = null; // para liberar quando trocar env
 
     // ===== Painel UI =====
-    const panel = document.createElement('div');
-    panel.className = 'panel-right';
-    panel.innerHTML = `
+    const panel = document.createElement('div'); panel.className = 'panel-right'; panel.innerHTML = `
       <h3>Transformações</h3>
       <div class="field"><label>Rot X</label><input id="rx" type="range" min="-180" max="180" value="0" step="1"><output id="rxv">0°</output></div>
       <div class="field"><label>Rot Y</label><input id="ry" type="range" min="-180" max="180" value="0" step="1"><output id="ryv">0°</output></div>
@@ -136,295 +118,197 @@
       <div class="field"><label>Pos Y</label><input id="ty" type="range" min="-200" max="200" value="0" step="1"><output id="tyv">0</output></div>
       <div class="field"><label>Pos Z</label><input id="tz" type="range" min="-200" max="200" value="0" step="1"><output id="tzv">0</output></div>
       <div class="field"><label>Escala</label><input id="scale" type="range" min="0.1" max="10" value="1" step="0.01"><output id="scalev">1.00×</output></div>
-      <div class="row inline">
-        <label class="inline"><input id="autorotate" type="checkbox"> Auto-rotate</label>
-        <span class="tiny">Velocidade</span>
-        <input id="rotSpeed" type="range" min="-10" max="10" value="2" step="0.1" style="width:120px">
-      </div>
-      <div class="row inline">
-        <button class="btn" id="resetBtn">Reset</button>
-        <button class="btn" id="centerBtn">Centralizar</button>
-        <button class="btn" id="screenshotBtn">Screenshot</button>
-      </div>
+      <div class="row inline"><label class="inline"><input id="autorotate" type="checkbox"> Auto-rotate</label><span class="tiny">Velocidade</span><input id="rotSpeed" type="range" min="-10" max="10" value="2" step="0.1" style="width:120px"></div>
+      <div class="row inline"><button class="btn" id="resetBtn">Reset</button><button class="btn" id="centerBtn">Centralizar</button><button class="btn" id="screenshotBtn">Screenshot</button></div>
 
       <h3>Materiais</h3>
-      <div class="row-split">
-        <label class="inline">Cor <input id="matColor" type="color" value="#69b1ff"></label>
-        <label class="inline">Wireframe <input id="wireframe" type="checkbox"></label>
-      </div>
+      <div class="row-split"><label class="inline">Cor <input id="matColor" type="color" value="#69b1ff"></label><label class="inline">Wireframe <input id="wireframe" type="checkbox"></label></div>
       <div class="field"><label>Rough</label><input id="rough" type="range" min="0" max="1" value="0.35" step="0.01"><output id="roughv">0.35</output></div>
       <div class="field"><label>Metal</label><input id="metal" type="range" min="0" max="1" value="0.10" step="0.01"><output id="metalv">0.10</output></div>
       <div class="field"><label>EnvInt</label><input id="envint" type="range" min="0" max="3" value="0.80" step="0.05"><output id="envintv">0.80</output></div>
-      <div class="row inline">
-        <label class="inline">Dupla face <input id="doubleSide" type="checkbox"></label>
-        <button class="btn" id="normalsBtn">Recalcular normais</button>
-      </div>
+      <div class="row inline"><label class="inline">Dupla face <input id="doubleSide" type="checkbox"></label><label class="inline">Forçar material padrão <input id="forceMat" type="checkbox"></label><button class="btn" id="normalsBtn">Recalcular normais</button></div>
 
       <h3>Cenário</h3>
-      <div class="row-split">
-        <select id="preset">
-          <option value="studio">Studio</option>
-          <option value="noite">Noite Neon</option>
-          <option value="branco">Branco</option>
-          <option value="bgimg">Imagem (URL)</option>
-          <option value="hdr">HDR (URL .hdr)</option>
-        </select>
-        <label class="inline">Eixos <input id="axesToggle" type="checkbox"></label>
-      </div>
-      <div class="row-split">
-        <label class="inline">BG Cor <input id="bgColor" type="color" value="#0b0e14"></label>
-        <label class="inline">Plano sombra <input id="shadowPlane" type="checkbox" checked></label>
-      </div>
-      <div class="row">
-        <input id="bgUrl" class="input" placeholder="URL imagem/HDR (https)" style="flex:1">
-        <button class="btn" id="loadBgBtn">Carregar</button>
-      </div>
-      <div class="row">
-        <input id="bgFile" type="file" accept=".hdr,.exr,.jpg,.jpeg,.png" style="display:none" />
-        <button class="btn" id="bgFileBtn">Upload img/HDR…</button>
-      </div>
+      <div class="row-split"><select id="preset"><option value="studio">Studio</option><option value="noite">Noite Neon</option><option value="branco">Branco</option><option value="bgimg">Imagem (URL)</option><option value="hdr">HDR (URL .hdr)</option></select><label class="inline">Eixos <input id="axesToggle" type="checkbox"></label></div>
+      <div class="row-split"><label class="inline">BG Cor <input id="bgColor" type="color" value="#0b0e14"></label><label class="inline">Plano sombra <input id="shadowPlane" type="checkbox" checked></label></div>
+      <div class="row"><input id="bgUrl" class="input" placeholder="URL imagem/HDR (https)" style="flex:1"><button class="btn" id="loadBgBtn">Carregar</button></div>
+      <div class="row"><input id="bgFile" type="file" accept=".hdr,.exr,.jpg,.jpeg,.png" style="display:none" /><button class="btn" id="bgFileBtn">Upload img/HDR…</button></div>
 
-      <h3>Carregar STL</h3>
-      <div class="chips">
-        <span class="chip">Arraste & Solte</span>
-        <span class="chip">URL/Parâmetro ?file=</span>
-        <span class="chip">GitHub Pages Ready</span>
-      </div>
-      <p class="tiny">Dica: use arquivos HTTPS. Para GitHub, prefira o link <em>raw</em>.</p>
-    `;
-    container.appendChild(panel);
+      <h3>Carregar modelo</h3>
+      <div class="chips"><span class="chip">Arraste & Solte (multi-arquivo)</span><span class="chip">URL / ?file=</span><span class="chip">Suporta STL · OBJ(+MTL) · GLTF/GLB · PLY</span></div>
+      <p class="tiny">OBS: Para OBJ com materiais, inclua o <em>.mtl</em> e as texturas juntos. Para GLTF, prefira GLB ou sirva com CORS ok.</p>
+    `; container.appendChild(panel);
 
     // ==== Refs UI ====
-    const qs = (s)=>panel.querySelector(s);
-    const rx=qs('#rx'), ry=qs('#ry'), rz=qs('#rz');
-    const rxv=qs('#rxv'), ryv=qs('#ryv'), rzv=qs('#rzv');
-    const tx=qs('#tx'), ty=qs('#ty'), tz=qs('#tz');
-    const txv=qs('#txv'), tyv=qs('#tyv'), tzv=qs('#tzv');
-    const scale=qs('#scale'), scalev=qs('#scalev');
-    const autorotate=qs('#autorotate'), rotSpeed=qs('#rotSpeed');
+    const qs=(s)=>panel.querySelector(s);
+    const rx=qs('#rx'), ry=qs('#ry'), rz=qs('#rz'); const rxv=qs('#rxv'), ryv=qs('#ryv'), rzv=qs('#rzv');
+    const tx=qs('#tx'), ty=qs('#ty'), tz=qs('#tz'); const txv=qs('#txv'), tyv=qs('#tyv'), tzv=qs('#tzv');
+    const scale=qs('#scale'), scalev=qs('#scalev'); const autorotate=qs('#autorotate'), rotSpeed=qs('#rotSpeed');
     const resetBtn=qs('#resetBtn'), centerBtn=qs('#centerBtn'), screenshotBtn=qs('#screenshotBtn');
-
-    const matColor=qs('#matColor'), wireframe=qs('#wireframe');
-    const rough=qs('#rough'), roughv=qs('#roughv');
-    const metal=qs('#metal'), metalv=qs('#metalv');
-    const envint=qs('#envint'), envintv=qs('#envintv');
-    const doubleSide=qs('#doubleSide'), normalsBtn=qs('#normalsBtn');
-
-    const preset=qs('#preset'), axesToggle=qs('#axesToggle');
-    const bgColor=qs('#bgColor'), shadowPlane=qs('#shadowPlane');
-    const bgUrl=qs('#bgUrl'), loadBgBtn=qs('#loadBgBtn');
-    const bgFile=qs('#bgFile'), bgFileBtn=qs('#bgFileBtn');
+    const matColor=qs('#matColor'), wireframe=qs('#wireframe'); const rough=qs('#rough'), roughv=qs('#roughv');
+    const metal=qs('#metal'), metalv=qs('#metalv'); const envint=qs('#envint'), envintv=qs('#envintv');
+    const doubleSide=qs('#doubleSide'), normalsBtn=qs('#normalsBtn'), forceMat=qs('#forceMat');
+    const preset=qs('#preset'), axesToggle=qs('#axesToggle'); const bgColor=qs('#bgColor'), shadowPlane=qs('#shadowPlane');
+    const bgUrl=qs('#bgUrl'), loadBgBtn=qs('#loadBgBtn'); const bgFile=qs('#bgFile'), bgFileBtn=qs('#bgFileBtn');
 
     // Auxiliares
     const axes = new THREE.AxesHelper(200); axes.visible=false; scene.add(axes);
 
-    function updateRotationUI(){
-      rxv.textContent = `${rx.value}°`; ryv.textContent = `${ry.value}°`; rzv.textContent = `${rz.value}°`;
-      if (currentMesh){
-        currentMesh.rotation.set(
-          THREE.MathUtils.degToRad(+rx.value),
-          THREE.MathUtils.degToRad(+ry.value),
-          THREE.MathUtils.degToRad(+rz.value)
-        );
+    function updateRotationUI(){ rxv.textContent=`${rx.value}°`; ryv.textContent=`${ry.value}°`; rzv.textContent=`${rz.value}°`; if(currentRoot){ currentRoot.rotation.set(THREE.MathUtils.degToRad(+rx.value), THREE.MathUtils.degToRad(+ry.value), THREE.MathUtils.degToRad(+rz.value)); } }
+    function updatePositionUI(){ txv.textContent=tx.value; tyv.textContent=ty.value; tzv.textContent=tz.value; if(currentRoot){ currentRoot.position.set(+tx.value, +ty.value, +tz.value); } }
+    function updateScaleUI(){ scalev.textContent=`${(+scale.value).toFixed(2)}×`; if(currentRoot){ currentRoot.scale.setScalar(+scale.value); } }
+    ;['input','change'].forEach(evt=>{ [rx,ry,rz].forEach(el=>el.addEventListener(evt, updateRotationUI)); [tx,ty,tz].forEach(el=>el.addEventListener(evt, updatePositionUI)); scale.addEventListener(evt, updateScaleUI); });
+    autorotate.addEventListener('change',()=> controls.autoRotate = autorotate.checked); rotSpeed.addEventListener('input',()=> controls.autoRotateSpeed = +rotSpeed.value);
+    resetBtn.addEventListener('click',()=>{ rx.value=ry.value=rz.value=0; updateRotationUI(); tx.value=ty.value=tz.value=0; updatePositionUI(); scale.value=1; updateScaleUI(); controls.reset(); fitCameraToObject(currentRoot,1.3); });
+    centerBtn.addEventListener('click',()=>{ if(currentRoot){ centerObject3D(currentRoot.children[0]); fitCameraToObject(currentRoot,1.4); tx.value=ty.value=tz.value=0; updatePositionUI(); } });
+    window.addEventListener('keydown',e=>{ const k=e.key.toLowerCase(); if(k==='s') makeScreenshot(); if(k==='r') resetBtn.click(); }); screenshotBtn.addEventListener('click', makeScreenshot);
+    function makeScreenshot(){ const url = renderer.domElement.toDataURL('image/png'); const a=document.createElement('a'); a.href=url; a.download='3d-view.png'; a.click(); }
+
+    // Materiais (aplicados no material padrão ou em todos se forçado)
+    matColor.addEventListener('input',()=> applyMaterialChange(m=> m.color && m.color.set(matColor.value)));
+    wireframe.addEventListener('change',()=> applyMaterialChange(m=> m.wireframe = wireframe.checked));
+    rough.addEventListener('input',()=>{ roughv.textContent=rough.value; applyMaterialChange(m=> m.roughness !== undefined && (m.roughness = +rough.value)); });
+    metal.addEventListener('input',()=>{ metalv.textContent=metal.value; applyMaterialChange(m=> m.metalness !== undefined && (m.metalness = +metal.value)); });
+    envint.addEventListener('input',()=>{ envintv.textContent=envint.value; applyMaterialChange(m=> m.envMapIntensity !== undefined && (m.envMapIntensity = +envint.value)); });
+    doubleSide.addEventListener('change',()=> applyMaterialChange(m=> { m.side = doubleSide.checked ? THREE.DoubleSide : THREE.FrontSide; m.needsUpdate=true; }));
+    normalsBtn.addEventListener('click',()=>{ if(currentRoot){ currentRoot.traverse(o=>{ if(o.isMesh){ o.geometry.computeVertexNormals(); o.geometry.normalsNeedUpdate=true; } }); }});
+    function applyMaterialChange(cb){ if(!currentRoot) return; if(forceMat.checked){ currentRoot.traverse(o=>{ if(o.isMesh){ cb(o.material); }}); } else { // aplica no material padrão e nos meshes que usam ele
+        cb(defaultMaterial);
+        currentRoot.traverse(o=>{ if(o.isMesh && o.material === defaultMaterial){ cb(o.material); } });
       }
     }
-    function updatePositionUI(){
-      txv.textContent=tx.value; tyv.textContent=ty.value; tzv.textContent=tz.value;
-      if(currentMesh){ currentMesh.position.set(+tx.value, +ty.value, +tz.value); }
-    }
-    function updateScaleUI(){
-      scalev.textContent = `${(+scale.value).toFixed(2)}×`;
-      if(currentMesh){ currentMesh.scale.setScalar(+scale.value); }
-    }
 
-    ;['input','change'].forEach(evt=>{
-      [rx,ry,rz].forEach(el=>el.addEventListener(evt, updateRotationUI));
-      [tx,ty,tz].forEach(el=>el.addEventListener(evt, updatePositionUI));
-      scale.addEventListener(evt, updateScaleUI);
-    });
-
-    autorotate.addEventListener('change',()=> controls.autoRotate = autorotate.checked);
-    rotSpeed.addEventListener('input',()=> controls.autoRotateSpeed = +rotSpeed.value);
-
-    resetBtn.addEventListener('click',()=>{ rx.value=ry.value=rz.value=0; updateRotationUI(); tx.value=ty.value=tz.value=0; updatePositionUI(); scale.value=1; updateScaleUI(); controls.reset(); fitCameraToObject(currentMesh,1.3); });
-    centerBtn.addEventListener('click',()=>{ if(currentMesh){ centerGeometry(currentMesh.geometry); fitCameraToObject(currentMesh,1.4); tx.value=ty.value=tz.value=0; updatePositionUI(); } });
-
-    // Screenshot
-    window.addEventListener('keydown',e=>{ if(e.key.toLowerCase()==='s') makeScreenshot(); });
-    screenshotBtn.addEventListener('click', makeScreenshot);
-    function makeScreenshot(){ const url = renderer.domElement.toDataURL('image/png'); const a=document.createElement('a'); a.href=url; a.download='stl-view.png'; a.click(); }
-
-    // Materiais
-    matColor.addEventListener('input',()=>{ defaultMaterial.color.set(matColor.value); });
-    wireframe.addEventListener('change',()=>{ defaultMaterial.wireframe = wireframe.checked; });
-    rough.addEventListener('input',()=>{ defaultMaterial.roughness=+rough.value; roughv.textContent=rough.value; });
-    metal.addEventListener('input',()=>{ defaultMaterial.metalness=+metal.value; metalv.textContent=metal.value; });
-    envint.addEventListener('input',()=>{ defaultMaterial.envMapIntensity=+envint.value; envintv.textContent=envint.value; });
-    doubleSide.addEventListener('change',()=>{ defaultMaterial.side = doubleSide.checked ? THREE.DoubleSide : THREE.FrontSide; defaultMaterial.needsUpdate=true; });
-    normalsBtn.addEventListener('click',()=>{ if(currentMesh){ currentMesh.geometry.computeVertexNormals(); currentMesh.geometry.normalsNeedUpdate=true; }});
-
-    // Cenário
-    axesToggle.addEventListener('change',()=> axes.visible = axesToggle.checked);
-    shadowPlane.addEventListener('change',()=> ground.visible = shadowPlane.checked);
-
+    // Cenário / BG
+    axesToggle.addEventListener('change',()=> axes.visible = axesToggle.checked); shadowPlane.addEventListener('change',()=> ground.visible = shadowPlane.checked);
     preset.addEventListener('change',applyPreset);
     bgColor.addEventListener('input',()=>{ if(preset.value!=='hdr' && preset.value!=='bgimg'){ renderer.setClearColor(new THREE.Color(bgColor.value), 1); scene.background = new THREE.Color(bgColor.value); } });
-
     loadBgBtn.addEventListener('click',()=>{ const u = bgUrl.value.trim(); if(!u) return; if(preset.value==='hdr') loadHDR(u); else loadBGImage(u); });
     bgFileBtn.addEventListener('click',()=> bgFile.click());
-    bgFile.addEventListener('change',e=>{
-      const f = e.target.files?.[0]; if(!f) return;
-      const url = URL.createObjectURL(f);
-      if(f.name.toLowerCase().endsWith('.hdr')) loadHDR(url, true); else loadBGImage(url, true);
-    });
+    bgFile.addEventListener('change',e=>{ const f=e.target.files?.[0]; if(!f) return; const url=URL.createObjectURL(f); if(f.name.toLowerCase().endsWith('.hdr')) loadHDR(url,true); else loadBGImage(url,true); });
 
-    function applyPreset(){
-      // limpa env antigo
-      setEnvironment(null);
-      switch(preset.value){
-        case 'studio':
-          scene.background = new THREE.Color('#0b0e14'); renderer.setClearColor('#0b0e14');
-          hemi.intensity=0.9; dir.intensity=1.2; grid.visible=true; ground.visible=shadowPlane.checked; break;
-        case 'noite':
-          scene.background = new THREE.Color('#0b0b1a'); renderer.setClearColor('#0b0b1a');
-          hemi.intensity=0.6; dir.intensity=1.4; grid.visible=true; ground.visible=shadowPlane.checked; break;
-        case 'branco':
-          scene.background = new THREE.Color('#ffffff'); renderer.setClearColor('#ffffff');
-          hemi.intensity=0.8; dir.intensity=0.9; grid.visible=false; ground.visible=false; break;
-        case 'bgimg':
-          // aguardará URL/Upload
-          scene.background = new THREE.Color(bgColor.value); renderer.setClearColor(bgColor.value); break;
-        case 'hdr':
-          // aguardará URL/Upload .hdr
-          scene.background = new THREE.Color('#000000'); renderer.setClearColor('#000000'); break;
-      }
+    function applyPreset(){ setEnvironment(null); switch(preset.value){
+      case 'studio': scene.background = new THREE.Color('#0b0e14'); renderer.setClearColor('#0b0e14'); hemi.intensity=0.9; dir.intensity=1.2; grid.visible=true; ground.visible=shadowPlane.checked; break;
+      case 'noite': scene.background = new THREE.Color('#0b0b1a'); renderer.setClearColor('#0b0b1a'); hemi.intensity=0.6; dir.intensity=1.4; grid.visible=true; ground.visible=shadowPlane.checked; break;
+      case 'branco': scene.background = new THREE.Color('#ffffff'); renderer.setClearColor('#ffffff'); hemi.intensity=0.8; dir.intensity=0.9; grid.visible=false; ground.visible=false; break;
+      case 'bgimg': scene.background = new THREE.Color(bgColor.value); renderer.setClearColor(bgColor.value); break;
+      case 'hdr': scene.background = new THREE.Color('#000000'); renderer.setClearColor('#000000'); break; }
     }
 
-    function loadBGImage(url, revoke=false){
-      new THREE.TextureLoader().load(url,(tex)=>{
-        tex.mapping = THREE.EquirectangularReflectionMapping; // se não for equiretangular, ainda funciona como background plano
-        scene.background = tex;
-        setEnvironment(pmremGen.fromEquirectangular(tex));
-        if(revoke) setTimeout(()=>URL.revokeObjectURL(url), 1000);
-      }, undefined, (e)=> alert('Falha ao carregar imagem de fundo. Verifique CORS/URL.'));
-    }
+    function loadBGImage(url, revoke=false){ new THREE.TextureLoader().load(url,(tex)=>{ tex.mapping = THREE.EquirectangularReflectionMapping; scene.background = tex; setEnvironment(pmremGen.fromEquirectangular(tex)); if(revoke) setTimeout(()=>URL.revokeObjectURL(url), 1000); }, undefined, ()=> alert('Falha ao carregar imagem de fundo. Verifique CORS/URL.')); }
+    function loadHDR(url, revoke=false){ new RGBELoader().load(url,(hdr)=>{ hdr.mapping = THREE.EquirectangularReflectionMapping; scene.background = hdr; setEnvironment(pmremGen.fromEquirectangular(hdr)); if(revoke) setTimeout(()=>URL.revokeObjectURL(url), 1000); }, undefined, ()=> alert('Falha ao carregar HDR (.hdr).')); }
+    function setEnvironment(rt){ if(currentEnvRT){ currentEnvRT.dispose(); currentEnvRT=null; } if(rt){ scene.environment = rt.texture; currentEnvRT = rt; } else { scene.environment = null; } }
 
-    function loadHDR(url, revoke=false){
-      new RGBELoader().load(url,(hdr)=>{
-        hdr.mapping = THREE.EquirectangularReflectionMapping;
-        scene.background = hdr;
-        setEnvironment(pmremGen.fromEquirectangular(hdr));
-        if(revoke) setTimeout(()=>URL.revokeObjectURL(url), 1000);
-      }, undefined, (e)=> alert('Falha ao carregar HDR. Verifique CORS/URL (.hdr).'));
-    }
+    // ===== Helpers de carregamento =====
+    const stlLoader = new STLLoader();
+    const objLoader = new OBJLoader();
+    const mtlLoader = new MTLLoader();
+    const gltfLoader = new GLTFLoader();
+    const plyLoader = new PLYLoader();
 
-    function setEnvironment(rt){
-      if(currentEnvRT){ currentEnvRT.dispose(); currentEnvRT=null; }
-      if(rt){ scene.environment = rt.texture; currentEnvRT = rt; }
-      else { scene.environment = null; }
-    }
+    function getExt(url){ return url.split('?')[0].split('#')[0].split('.').pop().toLowerCase(); }
 
-    // ===== Loader STL =====
-    const loader = new STLLoader();
-
-    async function loadSTLFromURL(url){
+    async function loadModelFromURL(url){
+      const ext = getExt(url);
       try{
-        const geometry = await loader.loadAsync(url);
-        setMesh(geometry);
-      } catch(err){
-        alert('Falha ao carregar STL. Verifique a URL (HTTPS) e CORS.');
-        console.error(err);
-      }
+        if(ext==='stl'){
+          const geom = await stlLoader.loadAsync(url); setFromGeometry(geom);
+        } else if(ext==='obj'){
+          // tenta carregar MTL correspondente (mesmo nome)
+          const base = url.substring(0, url.lastIndexOf('/')+1);
+          const name = url.split('/').pop(); const mtl = name.replace(/\.obj$/i, '.mtl');
+          try{
+            const materials = await mtlLoader.loadAsync(base + mtl);
+            materials.preload(); objLoader.setMaterials(materials); objLoader.setPath(base);
+          } catch(e){ /* sem MTL, ok */ }
+          const obj = await objLoader.loadAsync(url); setFromObject(obj);
+        } else if(ext==='gltf' || ext==='glb'){
+          const gltf = await gltfLoader.loadAsync(url); setFromObject(gltf.scene);
+        } else if(ext==='ply'){
+          const geom = await plyLoader.loadAsync(url); setFromGeometry(geom);
+        } else {
+          alert('Formato não suportado por URL. Use STL, OBJ, GLTF/GLB ou PLY.');
+        }
+      }catch(err){ alert('Falha ao carregar modelo (CORS/URL?).'); console.error(err); }
     }
 
-    function loadSTLFromFile(file){
-      const reader = new FileReader();
-      reader.onload = () => {
-        try{
-          const geometry = loader.parse(reader.result);
-          setMesh(geometry);
-        }catch(err){
-          alert('Não foi possível ler este STL.');
-          console.error(err);
+    function buildFileMap(fileList){ const map={}; for(const f of fileList){ map[f.name] = URL.createObjectURL(f); } return map; }
+    function makeManagerFromFileMap(map){ const mgr = new THREE.LoadingManager(); mgr.setURLModifier((u)=>{ const fname = u.split('/').pop().split('?')[0]; return map[fname] || u; }); return mgr; }
+
+    async function loadModelFromFiles(files){
+      const arr = Array.from(files);
+      const main = arr.find(f=>/\.(gltf|glb)$/i.test(f.name)) || arr.find(f=>/\.obj$/i.test(f.name)) || arr.find(f=>/\.stl$/i.test(f.name)) || arr.find(f=>/\.ply$/i.test(f.name));
+      if(!main){ alert('Nenhum arquivo principal encontrado (STL/OBJ/GLTF/GLB/PLY).'); return; }
+      const map = buildFileMap(arr); const mgr = makeManagerFromFileMap(map);
+      try{
+        const url = map[main.name]; const ext = getExt(main.name);
+        if(ext==='stl'){
+          const loader = new STLLoader(mgr); const geom = await loader.loadAsync(url); setFromGeometry(geom);
+        } else if(ext==='obj'){
+          // se houver MTL, usa
+          const mtl = arr.find(f=> f.name.toLowerCase().endsWith('.mtl'));
+          const loader = new OBJLoader(mgr);
+          if(mtl){ const mats = await new MTLLoader(mgr).loadAsync(map[mtl.name]); mats.preload(); loader.setMaterials(mats); }
+          const obj = await loader.loadAsync(url); setFromObject(obj);
+        } else if(ext==='gltf' || ext==='glb'){
+          const loader = new GLTFLoader(mgr); const gltf = await loader.loadAsync(url); setFromObject(gltf.scene);
+        } else if(ext==='ply'){
+          const loader = new PLYLoader(mgr); const geom = await loader.loadAsync(url); setFromGeometry(geom);
         }
-      };
-      reader.readAsArrayBuffer(file);
+      }catch(err){ alert('Falha ao carregar arquivos locais.'); console.error(err); }
+      // libera URLs após um tempo
+      setTimeout(()=>{ Object.values(map).forEach(u=> URL.revokeObjectURL(u)); }, 30000);
     }
+
+    function disposeObject(root){ if(!root) return; root.traverse(o=>{ if(o.isMesh){ if(o.geometry) o.geometry.dispose(); if(o.material){ if(Array.isArray(o.material)){ o.material.forEach(m=>disposeMat(m)); } else disposeMat(o.material); } }}); function disposeMat(m){ for(const k in m){ const v=m[k]; if(v && v.isTexture) v.dispose(); } if(m.dispose) m.dispose(); } }
 
     function centerGeometry(geometry){ geometry.computeBoundingBox(); const c = geometry.boundingBox.getCenter(new THREE.Vector3()); geometry.translate(-c.x, -c.y, -c.z); geometry.computeBoundingSphere(); }
+    function centerObject3D(obj){ const box = new THREE.Box3().setFromObject(obj); const c = box.getCenter(new THREE.Vector3()); obj.position.sub(c); obj.updateMatrixWorld(true); }
 
-    function setMesh(geometry){
-      if (currentMesh){ scene.remove(currentMesh); currentMesh.geometry.dispose(); }
-      geometry.computeVertexNormals();
-      centerGeometry(geometry);
-      currentMesh = new THREE.Mesh(geometry, defaultMaterial);
-      currentMesh.castShadow = true; currentMesh.receiveShadow = true;
-      scene.add(currentMesh);
+    function setFromGeometry(geometry){ geometry.computeVertexNormals(); centerGeometry(geometry); const mesh = new THREE.Mesh(geometry, defaultMaterial); mesh.castShadow = true; mesh.receiveShadow = true; setFromObject(mesh); }
 
-      // atualizar ranges de posição com base no tamanho do objeto
-      geometry.computeBoundingSphere();
-      const r = geometry.boundingSphere.radius; currentRadius = Math.max(r, 1);
-      const range = Math.ceil(currentRadius * 3);
-      [tx,ty,tz].forEach(sl=>{ sl.min = -range; sl.max = range; });
+    function setFromObject(obj){
+      if(currentRoot){ scene.remove(currentRoot); disposeObject(currentRoot); }
+      // cria um container para aplicar transformações
+      const root = new THREE.Group(); root.add(obj); currentRoot = root; scene.add(root);
 
-      // reset UI
-      rx.value=ry.value=rz.value=0; updateRotationUI();
-      tx.value=ty.value=tz.value=0; updatePositionUI();
-      scale.value=1; updateScaleUI();
+      // aplica material padrão a meshes sem material ou se forçar
+      currentRoot.traverse(o=>{ if(o.isMesh){ o.castShadow = true; o.receiveShadow = true; if(forceMat.checked || !o.material){ o.material = defaultMaterial; } }});
 
-      fitCameraToObject(currentMesh, 1.6);
+      // atualizar ranges e UI
+      const box = new THREE.Box3().setFromObject(currentRoot); const size = box.getSize(new THREE.Vector3()); const radius = size.length()/2; currentRadius = Math.max(radius, 1);
+      const range = Math.ceil(currentRadius * 3); [tx,ty,tz].forEach(sl=>{ sl.min=-range; sl.max=range; });
+      rx.value=ry.value=rz.value=0; updateRotationUI(); tx.value=ty.value=tz.value=0; updatePositionUI(); scale.value=1; updateScaleUI();
+
+      // centraliza e ajusta câmera
+      centerObject3D(obj); fitCameraToObject(currentRoot, 1.6);
     }
 
-    function fitCameraToObject(obj, offset = 1.3){
-      if(!obj) return;
-      obj.geometry.computeBoundingSphere();
-      const bs = obj.geometry.boundingSphere;
-      const size = bs.radius * 2 * offset;
-      const fov = camera.fov * (Math.PI/180);
-      let cameraZ = Math.abs(size / (2 * Math.tan(fov/2)));
-      cameraZ *= 1.1;
-      camera.position.set(bs.center.x + cameraZ, bs.center.y + cameraZ*0.6, bs.center.z + cameraZ);
-      controls.target.copy(bs.center); controls.update();
-    }
+    function fitCameraToObject(obj, offset=1.3){ if(!obj) return; const box = new THREE.Box3().setFromObject(obj); const bs = box.getBoundingSphere(new THREE.Sphere()); const size = bs.radius * 2 * offset; const fov = camera.fov * (Math.PI/180); let cameraZ = Math.abs(size / (2 * Math.tan(fov/2))); cameraZ *= 1.1; camera.position.set(bs.center.x + cameraZ, bs.center.y + cameraZ*0.6, bs.center.z + cameraZ); controls.target.copy(bs.center); controls.update(); }
 
     // ===== Eventos UI header =====
-    const fileInput = document.getElementById('file');
-    const openBtn = document.getElementById('openBtn');
-    const urlInput = document.getElementById('url');
-    const loadUrlBtn = document.getElementById('loadUrlBtn');
-
+    const fileInput = document.getElementById('file'); const openBtn = document.getElementById('openBtn'); const urlInput = document.getElementById('url'); const loadUrlBtn = document.getElementById('loadUrlBtn');
     openBtn.addEventListener('click', () => fileInput.click());
-    fileInput.addEventListener('change', e => { const f = e.target.files?.[0]; if (f) loadSTLFromFile(f); });
-    loadUrlBtn.addEventListener('click', () => { const u = urlInput.value.trim(); if (u) loadSTLFromURL(u); });
+    fileInput.addEventListener('change', e => { const fl = e.target.files; if (fl && fl.length) loadModelFromFiles(fl); });
+    loadUrlBtn.addEventListener('click', () => { const u = urlInput.value.trim(); if (u) loadModelFromURL(u); });
 
-    // Drag & Drop
+    // Drag & Drop (multi-arquivo)
     const drop = document.getElementById('dropzone');
     ['dragenter','dragover','dragleave','drop'].forEach(evt => drop.addEventListener(evt, e => { e.preventDefault(); e.stopPropagation(); }));
     drop.addEventListener('dragenter',()=> drop.style.borderColor = '#3a4b75');
     drop.addEventListener('dragleave',()=> drop.style.borderColor = '#2a3550');
-    drop.addEventListener('drop', e => { const f = e.dataTransfer.files?.[0]; if (f) loadSTLFromFile(f); drop.style.borderColor = '#2a3550'; });
+    drop.addEventListener('drop', e => { drop.style.borderColor = '#2a3550'; const fl = e.dataTransfer.files; if (fl && fl.length) loadModelFromFiles(fl); });
 
-    // ===== Param ?file= e STL padrão =====
-    const params = new URLSearchParams(location.search);
-    const fileParam = params.get('file');
+    // ===== Param ?file= e modelo padrão =====
+    const params = new URLSearchParams(location.search); const fileParam = params.get('file');
     const DEFAULT_STL = 'https://raw.githubusercontent.com/DF-Eletronica/DF_ELETRONICA_3D.github.io/main/modelo.stl';
-
-    if (fileParam){ urlInput.value = decodeURIComponent(fileParam); loadSTLFromURL(urlInput.value); }
-    else { urlInput.value = DEFAULT_STL; loadSTLFromURL(DEFAULT_STL); }
+    if (fileParam){ urlInput.value = decodeURIComponent(fileParam); loadModelFromURL(urlInput.value); } else { urlInput.value = DEFAULT_STL; loadModelFromURL(DEFAULT_STL); }
 
     // Preset inicial
     applyPreset();
 
     // ===== Resize/Loop =====
-    function resize(){
-      const h = window.innerHeight - headerH;
-      renderer.setSize(window.innerWidth, h);
-      renderer.getSize(sizeVec);
-      camera.aspect = sizeVec.x / sizeVec.y; camera.updateProjectionMatrix();
-    }
+    function resize(){ const h = window.innerHeight - headerH; renderer.setSize(window.innerWidth, h); renderer.getSize(sizeVec); camera.aspect = sizeVec.x / sizeVec.y; camera.updateProjectionMatrix(); }
     window.addEventListener('resize', resize);
-    window.addEventListener('keydown', (e) => { const k = e.key.toLowerCase(); if (k==='r') resetBtn.click(); if(k==='s') makeScreenshot(); });
-
     renderer.setAnimationLoop(() => { controls.update(); renderer.render(scene, camera); });
   </script>
 </body>
