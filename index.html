@@ -233,7 +233,17 @@
     // ===== Query param ?file= =====
     const params = new URLSearchParams(location.search);
     const fileParam = params.get('file');
-    if (fileParam){ urlInput.value = decodeURIComponent(fileParam); loadSTLFromURL(urlInput.value); }
+
+    // URL padrão (RAW do GitHub)
+    const DEFAULT_STL = 'https://raw.githubusercontent.com/DF-Eletronica/DF_ELETRONICA_3D.github.io/main/modelo.stl';
+
+    if (fileParam){
+      urlInput.value = decodeURIComponent(fileParam);
+      loadSTLFromURL(urlInput.value);
+    } else {
+      urlInput.value = DEFAULT_STL;
+      loadSTLFromURL(DEFAULT_STL);
+    }
 
     // ===== Resize =====
     function resize(){
